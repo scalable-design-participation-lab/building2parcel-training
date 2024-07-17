@@ -1,0 +1,7 @@
+matplotlib
+cartopy
+geopandas
+python-dotenv
+Pillow
+numpy
+owslib
