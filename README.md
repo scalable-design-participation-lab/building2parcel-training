@@ -20,7 +20,7 @@ You can install building2parcel-training using pip:
 
 ```
 
-pip install building2parcel-training
+pip install parcel-building-mapper==0.1.0
 
 ```
 
