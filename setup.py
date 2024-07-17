@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="parcel_building_mapper",
+    name="building2parcel-trainingdata",
     version="0.1.0",
     author="Dezeng Kong",
     author_email="kong.dez@northeastern.edu",
