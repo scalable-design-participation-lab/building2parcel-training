@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="building2parcel-trainingdata",
-    version="0.1.0",
+    name="building2parcel_trainingdata",
+    version="0.2.5",
     author="Dezeng Kong",
     author_email="kong.dez@northeastern.edu",
     description="A package for mapping parcels and buildings using various data sources",

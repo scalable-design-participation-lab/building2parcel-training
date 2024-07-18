@@ -20,7 +20,7 @@ You can install building2parcel-training using pip:
 
 ```
 
-pip install building2parcel-trainingdata==0.1.0
+pip install building2parcel_trainingdata==0.2.4
 
 ```
 
@@ -39,7 +39,7 @@ pip install -e .
 Here's a basic example of how to use building2parcel-training:
 
 ```python
-from building2parcel_training import ParcelBuildingMapper
+from building2parcel_trainingdata import ParcelBuildingMapper
 
 # Initialize the mapper with paths to your data
 parcels_path = "path/to/your/parcels.shp"
