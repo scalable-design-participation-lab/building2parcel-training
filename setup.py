@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="building2parcel_trainingdata",
-    version="0.2.5",
+    version="0.2.4",
     author="Dezeng Kong",
     author_email="kong.dez@northeastern.edu",
     description="A package for mapping parcels and buildings using various data sources",
@@ -19,6 +19,8 @@ setup(
         "Pillow",
         "numpy",
         "owslib",
+        "tqdm",
+        "pandas",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -26,4 +28,9 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
+    entry_points={
+        'console_scripts': [
+            'building2parcel_trainingdata=building2parcel_trainingdata.building2parcel_trainingdata:main',
+        ],
+    },
 )
