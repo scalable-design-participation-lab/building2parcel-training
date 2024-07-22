@@ -4,14 +4,13 @@ building2parcel-training is a Python package for mapping parcels and buildings, 
 
 ## Features
 
-- Load and process parcel and building data from shapefiles
+- Load and process parcel and building data from shapefiles or geoJSON
+- Optional loading and processing of block data
 - Join parcel and building data based on spatial relationships
-- Generate maps using different base layers:
-  - Mapbox satellite imagery
-  - NASA GIBS REST API
-  - NASA GIBS Web Map Service (WMS)
-  - Simple maps without satellite imagery
+- Split buildings that span multiple parcels
+- Generate maps using Mapbox satellite imagery
 - Customize map output with various options
+- Generate dataset specifications and statistics
 - Support for creating training datasets for building-to-parcel association models
 
 ## Installation
@@ -19,56 +18,67 @@ building2parcel-training is a Python package for mapping parcels and buildings, 
 You can install building2parcel-training using pip:
 
 ```
-
-pip install parcel-building-mapper==0.1.0
-
+pip install building2parcel-trainingdata
 ```
 
 For development, clone the repository and install in editable mode:
 
 ```
-
-git clone https://github.com/yourusername/building2parcel-training.git
-cd building2parcel-training
+git clone https://github.com/scalable-design-participation-lab/building2parcel-trainingdata.git
+cd building2parcel-trainingdata
 pip install -e .
+```
+
+## Configuration
+
+Before using the package, you need to set up your environment:
+
+1. Create a `.env` file in the main folder (it will be a hidden file on Unix-based systems).
+2. In the `.env` file, add the following lines:
 
 ```
+MAPBOX_ACCESS_TOKEN="YOUR-API-KEY"
+LOCAL_PATH="YOUR-DROPBOX-PATH/Million Neighborhoods/"
+```
+
+Replace `YOUR-API-KEY` with your Mapbox Access Token for the Mapbox Web API, and `YOUR-DROPBOX-PATH` with the path to your Dropbox folder containing the parcel and building data (NYC data is available on our Dropbox).
 
 ## Usage
 
 Here's a basic example of how to use building2parcel-training:
 
 ```python
-from building2parcel_training import ParcelBuildingMapper
+from building2parcel_trainingdata import Building2ParcelMapper
 
 # Initialize the mapper with paths to your data
 parcels_path = "path/to/your/parcels.shp"
 buildings_path = "path/to/your/buildings.shp"
-mapper = ParcelBuildingMapper(parcels_path, buildings_path)
+blocks_path = "path/to/your/blocks.shp"  # Optional
+mapper = Building2ParcelMapper(parcels_path, buildings_path, blocks_path)
 
-# Set output paths
-parcels_output_path = "output/parcels/"
-buildings_output_path = "output/buildings/"
+# Split buildings (optional)
+mapper.split_buildings(threshold_high=0.75, threshold_low=0.15)
 
-# Generate maps using Mapbox satellite imagery
-mapper.generate_maps(parcels_output_path, buildings_output_path,
-                     start_index=0, end_index=5, distance=200,
-                     map_type='mapbox_satellite')
+# Assign colors to parcels and buildings
+mapper.assign_colors()
 
-# Generate simple maps without satellite imagery
-mapper.generate_maps(parcels_output_path, buildings_output_path,
-                     start_index=5, end_index=10, distance=200,
-                     map_type='simple')
+# Generate dataset specifications and statistics
+mapper.generate_dataset_specs(output_folder='./dataset_specs')
 
-# Generate maps using NASA GIBS REST API
-mapper.generate_maps(parcels_output_path, buildings_output_path,
-                     start_index=10, end_index=15, distance=200,
-                     map_type='nasa_gibs_rest')
+# Generate images
+parcel_images_directory = "./parcels_output/"
+buildings_images_directory = "./buildings_output/"
+number_of_images = 100
+mapper.generate_images(parcel_images_directory, buildings_images_directory, number_of_images)
+```
 
-# Generate maps using NASA GIBS WMS
-mapper.generate_maps(parcels_output_path, buildings_output_path,
-                     start_index=15, end_index=20, distance=200,
-                     map_type='nasa_gibs_wms')
+## Command-line Usage
+
+The package also provides a command-line interface:
+
+```
+python -m building2parcel_trainingdata --buildings_path path/to/buildings.shp --parcels_path path/to/parcels.shp --blocks_path path/to/blocks.shp --split_buildings True --threshold_high 0.75 --threshold_low 0.15 --parcel_images_directory ./parcels_output/ --buildings_images_directory ./buildings_output/ --number_of_images 100
+```
 
 ## Requirements
 
@@ -79,6 +89,8 @@ mapper.generate_maps(parcels_output_path, buildings_output_path,
 - Pillow
 - numpy
 - owslib
+- tqdm
+- pandas
 
 ## Contributing
 
@@ -90,6 +102,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Thanks to Mapbox and NASA GIBS for providing satellite imagery services.
+- Thanks to Mapbox for providing satellite imagery services.
 - This project was developed to support machine learning efforts in associating buildings with their corresponding parcels.
-```

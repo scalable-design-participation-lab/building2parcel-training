@@ -5,3 +5,5 @@ python-dotenv
 Pillow
 numpy
 owslib
+tqdm
+pandas
