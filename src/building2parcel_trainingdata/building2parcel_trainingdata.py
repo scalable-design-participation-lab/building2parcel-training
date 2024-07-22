@@ -84,6 +84,9 @@ class Building2ParcelMapper:
         self.df_buildings['building_id'] = range(len(self.df_buildings))
         self.df_parcels['parcel_id'] = range(len(self.df_parcels))
         
+        # Assign colors to parcels
+        self.df_parcels['color'] = [self.random_hex_color() for _ in range(len(self.df_parcels))]
+        
         self.buildings_with_parcel_info = self.df_buildings.sjoin(self.df_parcels, how="inner")
 
     def remove_duplicates(self, df):
@@ -335,52 +338,59 @@ class Building2ParcelMapper:
         plt.savefig(os.path.join(output_folder, f'{feature_type}_{index}.jpg'), bbox_inches='tight', pad_inches=0, dpi=96)
         plt.close(fig)
 
-    def generate_images(self, parcel_images_directory, buildings_images_directory, number_of_images):
+    def generate_images(self, parcel_images_directory, buildings_images_directory, combined_images_directory, number_of_images):
         """
-        Generate and save a specified number of parcel and building images.
+        Generate, save, and combine a specified number of parcel and building images.
 
         Args:
             parcel_images_directory (str): Directory to save parcel images.
             buildings_images_directory (str): Directory to save building images.
+            combined_images_directory (str): Directory to save combined images.
             number_of_images (int): Number of images to generate.
         """
-
         os.makedirs(parcel_images_directory, exist_ok=True)
         os.makedirs(buildings_images_directory, exist_ok=True)
+        os.makedirs(combined_images_directory, exist_ok=True)
 
         indices_to_print = random.sample(range(len(self.df_parcels)), number_of_images)
         
-        for i in tqdm(indices_to_print, desc="Generating images"):
+        for i in tqdm(indices_to_print, desc="Generating and combining images"):
             try:
                 subset_features = self.subset(i, 200)
+                
+                building_image_path = os.path.join(buildings_images_directory, f'buildings_{i}.jpg')
+                parcel_image_path = os.path.join(parcel_images_directory, f'parcels_{i}.jpg')
+                combined_image_path = os.path.join(combined_images_directory, f'building{i}_to_parcel{i}.jpg')
+
                 self.map_maker(subset_features[0], subset_features[1], subset_features[2], i, 18, 'parcels', output_folder=parcel_images_directory)
                 self.map_maker(subset_features[0], subset_features[1], subset_features[2], i, 18, 'buildings', output_folder=buildings_images_directory)
+                
+                # Combine the images
+                self.combine_images(building_image_path, parcel_image_path, combined_image_path)
+                
             except Exception as e:
                 print(f"Error at index {i}: {str(e)}")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Generate parcel and building image datasets from shapefile or geoJSON data.')
-    parser.add_argument("--buildings_path", help='Path to buildings (shapefile or geoJSON)', type=str, 
-                        default="C:/Million Neighborhoods/Spatial Data/ny-manhattan-buildings/geo_export_a80ea1a2-e8e0-4ffd-862c-1199433ac303.shp")
-    parser.add_argument("--parcels_path", help='Path to parcels (shapefile or geoJSON)', type=str, 
-                        default="C:/Million Neighborhoods/Spatial Data/ny-manhattan-parcels/NYC_2021_Tax_Parcels_SHP_2203/NewYork_2021_Tax_Parcels_SHP_2203.shp")
-    parser.add_argument("--blocks_path", help='Path to blocks (shapefile or geoJSON)', type=str, default=None)
-    parser.add_argument("--split_buildings", help='Whether to split buildings', type=bool, default=False)
-    parser.add_argument("--threshold_high", help="High building-parcel overlap threshold", type=float, default=0.75)
-    parser.add_argument("--threshold_low", help="Low building-parcel overlap threshold", type=float, default=0.15)
-    parser.add_argument("--parcel_images_directory", help='Directory for parcel images', type=str, default='./parcels_test/')
-    parser.add_argument("--buildings_images_directory", help='Directory for building images', type=str, default='./buildings_test/')
-    parser.add_argument("--number_of_images", help='Number of images to generate', type=int, default=10)
-        
-    args = parser.parse_args()
+    def combine_images(self, building_image_path, parcel_image_path, output_path):
+        """
+        Combine building and parcel images side by side using Pillow.
 
-    parcels = Building2ParcelMapper(args.parcels_path, args.buildings_path, args.blocks_path)
-    
-    if args.split_buildings:
-        parcels.split_buildings(args.threshold_high, args.threshold_low)
-    
-    parcels.assign_colors()
-    parcels.generate_dataset_specs()
-    parcels.generate_images(args.parcel_images_directory, args.buildings_images_directory, args.number_of_images)
+        Args:
+            building_image_path (str): Path to the building image.
+            parcel_image_path (str): Path to the parcel image.
+            output_path (str): Path to save the combined image.
+        """
+        building_img = Image.open(building_image_path)
+        parcel_img = Image.open(parcel_image_path)
 
-    print('Done!')
+        # Create a new image with the width of both images and the height of the taller image
+        total_width = building_img.width + parcel_img.width
+        max_height = max(building_img.height, parcel_img.height)
+        combined_img = Image.new('RGB', (total_width, max_height))
+
+        # Paste the images side by side
+        combined_img.paste(building_img, (0, 0))
+        combined_img.paste(parcel_img, (building_img.width, 0))
+
+        # Save the combined image
+        combined_img.save(output_path)
