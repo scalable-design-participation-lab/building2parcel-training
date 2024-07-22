@@ -54,6 +54,7 @@ from building2parcel_trainingdata import Building2ParcelMapper
 parcels_path = "path/to/your/parcels.shp"
 buildings_path = "path/to/your/buildings.shp"
 blocks_path = "path/to/your/blocks.shp"  # Optional
+
 mapper = Building2ParcelMapper(parcels_path, buildings_path, blocks_path)
 
 # Split buildings (optional)
@@ -91,6 +92,46 @@ python -m building2parcel_trainingdata --buildings_path path/to/buildings.shp --
 - owslib
 - tqdm
 - pandas
+
+## Generating Documentation
+
+To generate documentation for this package, we use `pdoc`. Follow these steps:
+
+1. Install pdoc if you haven't already:
+
+   ```
+   pip install pdoc
+   ```
+
+2. Navigate to the directory containing your `building2parcel_trainingdata.py` file.
+
+3. Run the following command to generate HTML documentation:
+
+   ```
+   pdoc -o ./docs building2parcel_trainingdata.py
+   ```
+
+   This will create a `docs` directory and generate HTML documentation inside it.
+
+4. To view the documentation, open `./docs/building2parcel_trainingdata.html` in a web browser.
+
+For more comprehensive documentation:
+
+- Ensure all functions and classes have proper docstrings.
+- Add a module-level docstring at the top of `building2parcel_trainingdata.py`.
+- To generate documentation for the entire package (if you have multiple Python files):
+
+  ```
+  pdoc -o ./docs building2parcel_trainingdata
+  ```
+
+- To generate documentation in Markdown format:
+
+  ```
+  pdoc -o ./docs --format md building2parcel_trainingdata.py
+  ```
+
+Remember to regenerate the documentation after making significant changes to your code or docstrings.
 
 ## Contributing
 

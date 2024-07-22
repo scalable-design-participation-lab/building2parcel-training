@@ -5,7 +5,7 @@ This package provides tools and utilities for processing and analyzing
 parcel and building data, including visualization with different map types.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 from .building2parcel_trainingdata import Building2ParcelMapper
 
