@@ -18,3 +18,4 @@ var/
 *.egg
 .env
 .pypirc
+run_mapper.py
