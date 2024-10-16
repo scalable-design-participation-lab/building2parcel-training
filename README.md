@@ -18,7 +18,7 @@ building2parcel-training is a Python package for mapping parcels and buildings, 
 You can install building-to-parcel-training using pip:
 
 ```
-pip install building-to-parcel-trainingdata
+pip install building2parcel-trainingdata
 ```
 
 For development, clone the repository and install in editable mode:
