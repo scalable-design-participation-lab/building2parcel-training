@@ -1,4 +1,4 @@
-# building2parcel-training
+# building-to-parcel-training
 
 building2parcel-training is a Python package for mapping parcels and buildings, designed to assist in training models to associate buildings with their corresponding parcels. It provides functionality for loading, processing, and visualizing geospatial data for parcels and buildings.
 
