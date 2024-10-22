@@ -16,9 +16,10 @@ from urllib.request import urlopen
 from PIL import Image
 import numpy as np
 from owslib.wms import WebMapService
-import argparse
 from tqdm import tqdm
 import pandas as pd
+import shutil
+from random import shuffle
 
 class Building2ParcelMapper:
     """
@@ -338,6 +339,103 @@ class Building2ParcelMapper:
         plt.savefig(os.path.join(output_folder, f'{feature_type}_{index}.jpg'), bbox_inches='tight', pad_inches=0, dpi=96)
         plt.close(fig)
 
+    def split_dataset(self, images_dir, output_dir, method='fixed', **kwargs):
+        """
+        Split the dataset into train, test, and validation sets using either fixed count or ratio method.
+
+        Args:
+        images_dir (str): Directory containing the images to split.
+        output_dir (str): Directory to save the split datasets.
+        method (str): 'fixed' for fixed count method, 'ratio' for ratio method.
+        **kwargs: Additional arguments based on the chosen method.
+
+        For 'fixed' method:
+            total_images (int): Total number of images to process (default: 25000).
+            train_count (int): Number of images for training set (default: 20000).
+            buffer_count (int): Number of images for buffer (default: 2500).
+            test_count (int): Number of images for test set (default: 1250).
+            val_count (int): Number of images for validation set (default: 1250).
+
+        For 'ratio' method:
+            train_ratio (float): Ratio of images for training set (default: 0.8).
+            buffer_ratio (float): Ratio of images for buffer (default: 0.1).
+            test_ratio (float): Ratio of images for test set (default: 0.05).
+            val_ratio (float): Ratio of images for validation set (default: 0.05).
+        """
+        # Get all image files
+        image_files = [f for f in os.listdir(images_dir) if f.endswith('.jpg') or f.endswith('.png')]
+        shuffle(image_files)  # Randomize the order
+
+        if method == 'fixed':
+            total_images = kwargs.get('total_images', 25000)
+            train_count = kwargs.get('train_count', 20000)
+            buffer_count = kwargs.get('buffer_count', 2500)
+            test_count = kwargs.get('test_count', 1250)
+            val_count = kwargs.get('val_count', 1250)
+
+            if len(image_files) < total_images:
+                raise ValueError(f"Not enough images. Found {len(image_files)}, but {total_images} are required.")
+            if train_count + buffer_count + test_count + val_count != total_images:
+                raise ValueError("The sum of train, buffer, test, and val counts must equal total_images.")
+            
+            selected_images = image_files[:total_images]
+        elif method == 'ratio':
+            train_ratio = kwargs.get('train_ratio', 0.8)
+            buffer_ratio = kwargs.get('buffer_ratio', 0.1)
+            test_ratio = kwargs.get('test_ratio', 0.05)
+            val_ratio = kwargs.get('val_ratio', 0.05)
+
+            if abs(train_ratio + buffer_ratio + test_ratio + val_ratio - 1) > 1e-5:
+                raise ValueError("The sum of train_ratio, buffer_ratio, test_ratio, and val_ratio must be 1.")
+
+            total_count = len(image_files)
+            train_count = int(total_count * train_ratio)
+            buffer_count = int(total_count * buffer_ratio)
+            test_count = int(total_count * test_ratio)
+            val_count = total_count - train_count - buffer_count - test_count
+
+            selected_images = image_files
+        else:
+            raise ValueError("Invalid method. Choose 'fixed' or 'ratio'.")
+
+        # Create output directories
+        for subset in ['train', 'test', 'val']:
+            os.makedirs(os.path.join(output_dir, subset), exist_ok=True)
+
+        # Split and move files to respective directories
+        for i, img in enumerate(selected_images):
+            if i < train_count:
+                dest = 'train'
+            elif i < train_count + buffer_count:
+                continue  # Skip buffer images
+            elif i < train_count + buffer_count + test_count:
+                dest = 'test'
+            elif i < train_count + buffer_count + test_count + val_count:
+                dest = 'val'
+            else:
+                break
+
+            shutil.copy(os.path.join(images_dir, img), os.path.join(output_dir, dest, img))
+
+        print(f"Dataset split complete. Method: {method}")
+        print(f"Train: {train_count}, Buffer: {buffer_count}, Test: {test_count}, Val: {val_count}")
+
+    def split_generated_images(self, combined_images_directory, output_dir='./split_dataset', method='fixed', **kwargs):
+        """
+        Split the generated images into train, test, and validation sets.
+
+        Args:
+        combined_images_directory (str): Directory containing the combined images to split.
+        output_dir (str): Directory to save the split datasets. Defaults to './split_dataset'.
+        method (str): 'fixed' for fixed count method, 'ratio' for ratio method.
+        **kwargs: Additional arguments for the chosen split method.
+            For 'fixed' method:
+                total_images, train_count, buffer_count, test_count, val_count
+            For 'ratio' method:
+                train_ratio, test_ratio, val_ratio
+        """
+        self.split_dataset(combined_images_directory, output_dir, method, **kwargs)
+
     def generate_images(self, parcel_images_directory, buildings_images_directory, combined_images_directory, number_of_images):
         """
         Generate, save, and combine a specified number of parcel and building images.
@@ -370,6 +468,7 @@ class Building2ParcelMapper:
                 
             except Exception as e:
                 print(f"Error at index {i}: {str(e)}")
+
 
     def combine_images(self, building_image_path, parcel_image_path, output_path):
         """
